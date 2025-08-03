@@ -20,6 +20,7 @@ class ConversationRequest(BaseModel):
     message: str = Field(..., description="Nova mensagem do usuário")
     message_type: MessageType = Field(MessageType.GENERAL, description="Tipo de solicitação")
     context: Optional[str] = Field(None, description="Contexto adicional específico para esta mensagem")
+    image_url: Optional[str] = Field(None, description='URL de um print de conversa para análise') # adicionando a opção da imgaem URL
 
 class ConversationResponse(BaseModel):
     conversation_id: str = Field(..., description="ID da conversa")
