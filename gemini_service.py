@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from typing import Optional
+from typing import Optional, Union
 from config import settings
 
 class GeminiService:
@@ -8,13 +8,28 @@ class GeminiService:
             raise ValueError("GEMINI_API_KEY não encontrada nas variáveis de ambiente")
         
         genai.configure(api_key=settings.gemini_api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash')
+        self.model = genai.GenerativeModel('gemini-1.5-pro')
     
-    async def generate_response(self, prompt: str, context: Optional[str] = None, conversation_history: Optional[str] = None) -> str:
+    async def generate_response(self, prompt: str, context: Optional[str] = None, conversation_history: Optional[str] = None, image_data: Optional[bytes] = None) -> str:
         try:
-            full_prompt = self._build_relationship_prompt(prompt, context, conversation_history)
-            response = self.model.generate_content(full_prompt)
-            return response.text
+            prompt_parts: list[Union[str,dict]] = []
+            
+            system_and_history = self._build_relationship_prompt(prompt,context,conversation_history)
+            prompt_parts.append(system_and_history)
+
+            if image_data:
+                prompt_parts.append({
+                    'mime_type': 'image/png',
+                    'data': image_data
+                                    })
+                 
+            response = self.model.generate_content(prompt_parts)
+                
+            if response and hasattr(response, 'text'):
+                return response.text
+            else:
+                return 'Não foi possível gerar uma resposta. Tente novamente.'
+
         except Exception as e:
             raise Exception(f"Erro ao gerar resposta do Gemini: {str(e)}")
     
@@ -29,6 +44,7 @@ class GeminiService:
         - Análise de conversas
         - Técnicas de flerte saudável
         - Construção de relacionamentos autênticos
+        - Análise de prints de conversas entre as pessoas
         
         
         Responda de forma informal,safada,direta, prática e construtiva.
